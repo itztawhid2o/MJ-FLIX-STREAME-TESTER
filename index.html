@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #fff;
+        }
+        .result.success {
+            background-color: #28a745;
+        }
+        .result.error {
+            background-color: #dc3545;
+        }
+        .result.blocked {
+            background-color: #ffc107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stream Tester</h1>
+        <p>Check your M3U/Stream link status: Online, Offline, or Blocked.</p>
+        <form id="streamForm">
+            <input type="text" id="streamLink" placeholder="Enter your stream link" required>
+            <button type="submit">Test Stream</button>
+        </form>
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('streamForm');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const streamLink = document.getElementById('streamLink').value;
+            resultDiv.style.display = 'none'; // Hide the result initially
+            resultDiv.textContent = ''; // Clear previous results
+
+            if (!streamLink) {
+                alert("Please enter a valid stream link.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/test_stream', { // Replace with your backend API URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `link=${encodeURIComponent(streamLink)}`,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.textContent = `Status: ${data.status}`;
+                    if (data.status === 'Online') {
+                        resultDiv.className = 'result success';
+                    } else if (data.status === 'Offline') {
+                        resultDiv.className = 'result error';
+                    } else if (data.status === 'Blocked') {
+                        resultDiv.className = 'result blocked';
+                    }
+                } else {
+                    resultDiv.textContent = `Error: ${data.error}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = 'An error occurred while testing the stream link.';
+                resultDiv.className = 'result error';
+            }
+
+            resultDiv.style.display = 'block'; // Show the result
+        });
+    </script>
+</body>
+</html>
